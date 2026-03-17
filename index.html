@@ -114,6 +114,12 @@
             text-decoration: underline;
         }
 
+        .word {
+            font-size: 2.5rem;
+            margin: 10px 0;
+            text-decoration: underline;
+        }
+
         .mission-text {
             font-style: italic;
             font-size: 1.4rem;
@@ -182,6 +188,17 @@ MbL</textarea>
             <div id="reveal-role" class="role-title">ROLE</div>
             <p><strong>Your Secret Mission:</strong></p>
             <div id="reveal-mission" class="mission-text">MISSION</div>
+            <table style="width: 100%;">
+                <tr><td style="width: 50%;"><p>Say aloud:</p></td><td><p>Listen:</p></td></tr>
+                <tr>
+                    <td><div id="reveal-spoken" class="word word-spoken">SAY ALOUD</div></td>
+                    <td><div id="reveal-listen" class="word word-listen">LISTEN</div></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><p style="font-size:80%;">If you hear this word, the speaker is the traitor on the other side.</p></div></td>
+                </tr>
+            </table>
             <p style="margin-top: 30px; font-size: 0.9rem; opacity: 0.7;">Close this window before the game starts.</p>
         </div>
     </div>
@@ -237,6 +254,12 @@ MbL</textarea>
         "The False King: In Regicide, move your King to the front lines 'by accident' during a skirmish.",
         "The Monk Failure: Attempt to convert enemy units but delete your monks right before the conversion finishes."
     ];
+    const CODEWORDS = [
+        "jellyfish","snorkel","teejay","friendly","verbose","howitzer","golfing","paramedic","castle","fireworks",
+        "simile","telephone","argument","barometric","careless","donut","echoing","horrible","instrument","kyle",
+        "lysosome","merriweather","necessary","otter","quintessential","regularly","underwater","wild","x11",
+        "yeet","zippo"
+    ];
 
     function shuffle(array) {
         return array.sort(() => Math.random() - 0.5);
@@ -252,8 +275,20 @@ MbL</textarea>
         }
 
         const shuffled = shuffle([...players]);
+        // We will use the first 8 of these in order, for the players
+        const codeword = shuffle([...CODEWORDS]);
         const traitorAIndex = Math.floor(Math.random() * 4);
         const traitorBIndex = Math.floor(Math.random() * 4);
+        // One in four (but excluding the traitor) from team A will know who the traitor is on team B
+        let traitorAcontact = Math.floor(Math.random() * 4);
+        while (traitorAcontact == traitorBIndex) {
+            traitorAcontact = Math.floor(Math.random() * 4);
+        }
+        // One in four (but excluding the traitor) from team B will know who the traitor is on team A
+        let traitorBcontact = Math.floor(Math.random() * 4);
+        while (traitorBcontact == traitorAIndex) {
+            traitorBcontact = Math.floor(Math.random() * 4);
+        }
 
         const container = document.getElementById('links-container');
         container.innerHTML = "";
@@ -263,13 +298,23 @@ MbL</textarea>
         shuffled.forEach((name, index) => {
             const isTeamA = index < 4;
             const isTraitor = isTeamA ? (index === traitorAIndex) : (index - 4 === traitorBIndex);
-            
+            // 16 is larger than any possible team size in AoE2
+            let spoken = codeword[index+16];
+            let listen = codeword[index];
+            if (isTraitor) {
+                spoken = isTeamA ? codeword[traitorBcontact + 4] : codeword[traitorAcontact];
+            }
+
             const payload = btoa(JSON.stringify({
                 name: name,
                 team: isTeamA ? "Team 1 (Blue)" : "Team 2 (Red)",
                 role: isTraitor ? "TRAITOR" : "LOYALIST",
-                mission: isTraitor ? TRAITOR_MISSIONS[Math.floor(Math.random() * TRAITOR_MISSIONS.length)] : "Ensure your team wins at all costs. Watch for spies!"
+                mission: isTraitor ? TRAITOR_MISSIONS[Math.floor(Math.random() * TRAITOR_MISSIONS.length)] : "Ensure your team wins at all costs. Watch for spies!",
+                spoken: spoken,
+                listen: listen
             }));
+            // Turn this on for debugging the teamgen
+            //console.log(atob(payload));
 
             const link = `${baseUrl}#${payload}`;
 
@@ -315,6 +360,8 @@ MbL</textarea>
                 document.getElementById('reveal-role').innerText = data.role;
                 document.getElementById('reveal-role').style.color = data.role === 'TRAITOR' ? 'var(--aoe-red)' : '#2e7d32';
                 document.getElementById('reveal-mission').innerText = `${data.mission}`;
+                document.getElementById('reveal-spoken').innerText = `${data.spoken}`;
+                document.getElementById('reveal-listen').innerText = `${data.listen}`;
             } catch (e) {
                 console.error("Invalid link data.");
             }
