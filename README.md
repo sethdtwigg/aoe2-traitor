@@ -1,13 +1,13 @@
 # aoe2-traitor
 A zero-backend, single-file web app for Age of Empires II that randomly assigns teams and secret traitors using URL-hash state management. Designed for 4v4 Discord sessions.
 
-AoE2 Secret Traitor Generator
+**AoE2 Secret Traitor Generator**
 A role distribution tool built for Age of Empires II: Definitive Edition 4v4 team games. It allows a user to assign teams and secret traitors without the dealer knowing anyone's identity but their own.
 
-The Concept
+**The Concept**
 In a standard 4v4, the app randomly splits 8 players into two teams. It secretly assigns one player on each team to be a Traitor working for the opposition. To win, a Traitor must ensure their assigned team loses while completing a randomly generated sabotage mission.
 
-Technical Highlights
+**Technical Highlights**
 Zero-Backend: No database or server-side logic. All state is generated on-the-fly.
 
 URL-Hash State: Uses Base64 encoded JSON payloads in the URL fragment (#) to distribute roles.
