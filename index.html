@@ -69,6 +69,7 @@
             cursor: pointer;
             width: 100%;
             margin-top: 10px;
+            margin-bottom: 10px;
             text-transform: uppercase;
         }
 
@@ -94,6 +95,76 @@
             text-overflow: ellipsis;
             white-space: nowrap;
             max-width: 60%;
+        }
+
+        .input-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* SLIDER STYLES */
+        .slider-wrapper {
+            margin-top: 12px;
+            background: rgba(0,0,0,0.2);
+            padding: 10px;
+            border: 1px solid #444;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            color: var(--aoe-gold);
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+        }
+
+        .slider-label strong {
+            color: #fff;
+            min-width: 1ch;
+            text-align: right;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+            display: block;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            background: #1a1510;
+            border: 1px solid var(--border-gold);
+            border-radius: 1px;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            height: 20px;
+            width: 20px;
+            background: var(--aoe-gold);
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -7px;
+            border: 1px solid #000;
+        }
+
+        input[type=range]::-moz-range-track {
+            width: 100%;
+            height: 8px;
+            background: #1a1510;
+            border: 1px solid var(--border-gold);
+        }
+
+        input[type=range]::-moz-range-thumb {
+            height: 20px;
+            width: 20px;
+            background: var(--aoe-gold);
+            cursor: pointer;
+            border: 1px solid #000;
+            border-radius: 0;
         }
 
         /* REVEAL VIEW STYLES */
@@ -151,18 +222,38 @@
 <div id="app" class="container">
     <div id="admin-view">
         <h1>Traitor Generator</h1>
-        <div class="input-section">
-            <p>Enter 8 names (one per line):</p>
-            <textarea id="name-input">TheViper
+        <p>Enter names (one per line):</p>
+        <div class="input-container">
+            <div class="input-section">
+                <textarea id="name-input-1">TheViper
 Hera
 Daut
-Tatoh
-Liereyy
+Tatoh</textarea>
+                <div class="slider-wrapper">
+                    <div class="slider-label">
+                        <span>Traitors:</span>
+                        <strong id="label-1">1</strong>
+                    </div>
+                    <input type="range" id="slider-1" min="0" max="3" value="1"
+                           oninput="document.getElementById('label-1').innerText = this.value">
+                </div>
+            </div>
+            <div class="input-section">
+                <textarea id="name-input-2">Liereyy
 Jordan_AoE
 Yo
 MbL</textarea>
-            <button onclick="generateGame()">Generate Secret Roles</button>
+                <div class="slider-wrapper">
+                    <div class="slider-label">
+                        <span>Traitors:</span>
+                        <strong id="label-2">1</strong>
+                    </div>
+                    <input type="range" id="slider-2" min="0" max="3" value="1"
+                           oninput="document.getElementById('label-2').innerText = this.value">
+                </div>
+            </div>
         </div>
+        <button onclick="generateGame()">Generate Secret Roles</button>
 
         <div id="output-section" class="hidden">
             <h2>Player Assignments</h2>
@@ -225,7 +316,7 @@ MbL</textarea>
         "The Lost Scout: Lose your initial scout to the enemy TC within the first 6 minutes.",
         "Market Sabotage: Drain your gold bank by buying/selling resources at highly inefficient rates.",
         "The Ghost Flare: Flare an empty spot on the map and claim 'Full army here!' to distract allies.",
-        "The Resource Hog: Take both Boars and all the Deer for yourself, ignoring ally needs.",
+        "The Resource Hog: Take an ally's Boar and all the Deer for yourself, ignoring ally needs.",
         "The Friendly Fire: 'Accidentally' hit at least 3 friendly units with a Mangonel ground-attack.",
         "Idle TC: Ensure your Town Center is idle for at least 60 seconds total during Feudal Age.",
         "The Late Response: Wait exactly 45 seconds before sending units to help an ally under attack.",
@@ -233,42 +324,54 @@ MbL</textarea>
         "The Information Leak: Type a strategic 'hint' in [All] chat, then say 'Oops, wrong chat' 5 seconds later.",
         "The Delayed Castle: Intentionally reach Castle Age at least 2 minutes later than your team.",
         "Tree Sabotage: Use onagers to cut a hole into the back of your ally's base for the enemy.",
-        "The Relic Thief: Capture 3 relics but hide them in a Monastery tucked away in a corner of the map.",
-        "The False King: In Regicide, move your King to the front lines 'by accident' during a skirmish.",
-        "The Monk Failure: Attempt to convert enemy units but delete your monks right before the conversion finishes."
+        "The Relic Thief: Capture 3 relics but hide them tucked away in a corner of the map.",
+        "Confidently Incorrect: Deliver strategic advice with absolute certainty... that is absolutely wrong.",
+        "The Monk Failure: Attempt to convert enemy units but delete your monks right before the conversion finishes.",
+        "The Elephant Panic: Upon seeing any enemy unit, loudly claim 'They're going elephants!' regardless of civ.",
+        "The Loom Denier: Refuse to research Loom until Castle Age, no matter what happens.",
+        "The Archer Purist: Make only archers but never research Fletching.",
+        "The Gatekeeper: Hold your ally's gate open during an enemy raid to ensure maximum enemy convenience.",
+        "The Zoo Keeper: Never eat or hunt any animals; live entirely off berries and farms while hoarding every critter you find."
     ];
 
     function shuffle(array) {
         return array.sort(() => Math.random() - 0.5);
     }
 
-    function generateGame() {
-        const input = document.getElementById('name-input').value;
-        const players = input.split('\n').map(n => n.trim()).filter(n => n !== "");
+    function getFromBag(size, numberToReturn) {
+        const numbers = [...Array(size).keys()];
+        return shuffle(numbers).slice(0, numberToReturn);
+    }
 
-        if (players.length !== 8) {
-            alert("Please enter exactly 8 names!");
-            return;
-        }
-
-        const shuffled = shuffle([...players]);
-        const traitorAIndex = Math.floor(Math.random() * 4);
-        const traitorBIndex = Math.floor(Math.random() * 4);
-
+    function assignRoles(team, teamname, traitorCount) {
         const container = document.getElementById('links-container');
-        container.innerHTML = "";
-
         const baseUrl = window.location.href.split('#')[0];
+        const shuffled = shuffle([...team]);
+
+        // Clamp: can't have more traitors than players, and always leave at least 1 loyalist
+        const actualTraitorCount = Math.min(traitorCount, shuffled.length - 1);
+
+        // Pick traitor indexes from the bag
+        const traitorIndexes = getFromBag(shuffled.length, actualTraitorCount);
+
+        // Pick handler index from remaining non-traitor players
+        const loyalistIndexes = [...shuffled.keys()].filter(i => !traitorIndexes.includes(i));
+        const handlerIndex = loyalistIndexes.length > 0
+            ? loyalistIndexes[Math.floor(Math.random() * loyalistIndexes.length)]
+            : -1;
 
         shuffled.forEach((name, index) => {
-            const isTeamA = index < 4;
-            const isTraitor = isTeamA ? (index === traitorAIndex) : (index - 4 === traitorBIndex);
-            
+            const isTraitor = traitorIndexes.includes(index);
+            const isHandler = index === handlerIndex;
+
             const payload = btoa(JSON.stringify({
                 name: name,
-                team: isTeamA ? "Team 1 (Blue)" : "Team 2 (Red)",
+                team: teamname,
                 role: isTraitor ? "TRAITOR" : "LOYALIST",
-                mission: isTraitor ? TRAITOR_MISSIONS[Math.floor(Math.random() * TRAITOR_MISSIONS.length)] : "Ensure your team wins at all costs. Watch for spies!"
+                handler: isHandler ? "HANDLER" : "",
+                mission: isTraitor
+                    ? TRAITOR_MISSIONS[Math.floor(Math.random() * TRAITOR_MISSIONS.length)]
+                    : "Ensure your team wins at all costs. Watch for spies!"
             }));
 
             const link = `${baseUrl}#${payload}`;
@@ -282,12 +385,29 @@ MbL</textarea>
             `;
             container.appendChild(row);
         });
+    }
+
+    function generateGame() {
+        const input1 = document.getElementById('name-input-1').value;
+        const players1 = input1.split('\n').map(n => n.trim()).filter(n => n !== "");
+
+        const input2 = document.getElementById('name-input-2').value;
+        const players2 = input2.split('\n').map(n => n.trim()).filter(n => n !== "");
+
+        const t1Count = parseInt(document.getElementById('slider-1').value);
+        const t2Count = parseInt(document.getElementById('slider-2').value);
+
+        const container = document.getElementById('links-container');
+        container.innerHTML = "";
+
+        assignRoles(players1, "TEAM 1 (Blue)", t1Count);
+        assignRoles(players2, "TEAM 2 (Red)", t2Count);
 
         document.getElementById('output-section').classList.remove('hidden');
     }
 
     function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => alert("Link copied!"));
+        navigator.clipboard.writeText(text);
     }
 
     function copyAllDiscord() {
@@ -314,7 +434,7 @@ MbL</textarea>
                 document.getElementById('reveal-team').className = data.team.includes('Blue') ? 'team-blue' : 'team-red';
                 document.getElementById('reveal-role').innerText = data.role;
                 document.getElementById('reveal-role').style.color = data.role === 'TRAITOR' ? 'var(--aoe-red)' : '#2e7d32';
-                document.getElementById('reveal-mission').innerText = `${data.mission}`;
+                document.getElementById('reveal-mission').innerText = data.mission;
             } catch (e) {
                 console.error("Invalid link data.");
             }
