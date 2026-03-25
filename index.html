@@ -393,7 +393,7 @@ MbL</textarea>
         return array;
     }
 
-    function updateSliderMax(teamNum) {
+	function updateSliderMax(teamNum) {
         const textarea = document.getElementById(`name-input-${teamNum}`);
         if (!textarea) return;
         
@@ -404,11 +404,15 @@ MbL</textarea>
         const slider = document.getElementById(`slider-${teamNum}`);
         const label = document.getElementById(`label-${teamNum}`);
         
+        const cachedValue = parseInt(slider.value) || 0;
+        
         slider.max = maxTraitors;
         
-        if (parseInt(slider.value) > maxTraitors) {
+        if (cachedValue > maxTraitors) {
             slider.value = maxTraitors;
             label.innerText = maxTraitors;
+        } else {
+            slider.value = cachedValue; 
         }
     }
 
